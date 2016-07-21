@@ -1,0 +1,7 @@
+{
+  "name": "docker-test-manager",
+  "version": "1.0.0",
+  "description": "Simple service with http client to demonstrate consul service discovery",
+  "author": "Pavol Noha <pavol.noha@gmail.com>",
+  "main": "server.js"
+}

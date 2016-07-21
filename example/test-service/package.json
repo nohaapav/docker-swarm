@@ -1,0 +1,7 @@
+{
+  "name": "docker-test-service",
+  "version": "1.0.0",
+  "description": "Simple service to return string when called",
+  "author": "Pavol Noha <pavol.noha@gmail.com>",
+  "main": "server.js"
+}
