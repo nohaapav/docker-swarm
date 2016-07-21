@@ -7,7 +7,6 @@ log() {
         echo -e "${GC}$1${NC}"
 }
 
-SWARM_NETWORK=swarm-net
 SWARM_NODES=("node0" "node1")
 SWARM_MEMBERS=("master" ${SWARM_NODES[@]})
 
