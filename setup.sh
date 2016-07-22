@@ -19,8 +19,8 @@ CONSUL_IP=$(docker-machine ip proxy)
 # Switch to proxy machine 
 eval "$(docker-machine env proxy)"
 
-log "Starting consul server..."
-docker run --restart=always -d -p "8500:8500" -h "consul" progrium/consul -server -bootstrap
+log "Starting consul server..."  
+docker run -d -p "8500:8500" -h "consul" gliderlabs/consul-server -server -bootstrap
 
 log "Creating swarm master..."
 docker-machine create \
