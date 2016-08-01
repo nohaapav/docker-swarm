@@ -3,60 +3,38 @@
 GC='\033[0;32m' #green color
 NC='\033[0m' #no color
 
-log() {
-        echo -e "${GC}$1${NC}"
-}
+function log { echo -e "${GC}$1${NC}"; }
 
-SWARM_NODES=("node0" "node1")
-SWARM_MEMBERS=("master" ${SWARM_NODES[@]})
+SWARM_MANAGERS=("manager0" "manager1" "manager2")
+SWARM_WORKERS=("worker0" "worker1" "worker2")
 
-log "Creating proxy machine..."
-docker-machine create --driver virtualbox --virtualbox-memory 512 proxy
+SWARM_LEADER=true
+SWARM_LEADER_IP=()
+SWARM_MANAGER_TOKEN=()
+SWARM_WORKER_TOKEN=()
 
-# Get consul ip address
-CONSUL_IP=$(docker-machine ip proxy)
+for i in "${SWARM_MANAGERS[@]}"; do
+        log "Creating $i machine..."
+        docker-machine create --driver virtualbox --virtualbox-memory 512 $i
+        eval "$(docker-machine env $i)"
 
-# Switch to proxy machine 
-eval "$(docker-machine env proxy)"
-
-log "Starting consul server..."  
-docker run -d -p "8500:8500" -h "consul" gliderlabs/consul-server -server -bootstrap
-
-log "Creating swarm master..."
-docker-machine create \
-    --driver virtualbox \
-    --virtualbox-memory 512 \
-    --swarm \
-    --swarm-master \
-    --swarm-discovery="consul://$CONSUL_IP:8500" \
-    --engine-opt="cluster-store=consul://$CONSUL_IP:8500" \
-    --engine-opt="cluster-advertise=eth1:2376" \
-    master
-
-for i in "${SWARM_NODES[@]}"; do
-	log "Creating swarm $i..."
-	docker-machine create \
-            --driver virtualbox \
-            --virtualbox-memory 512 \
-            --swarm \
-            --swarm-discovery="consul://$CONSUL_IP:8500" \
-            --engine-opt="cluster-store=consul://$CONSUL_IP:8500" \
-            --engine-opt="cluster-advertise=eth1:2376" \
-	    $i
+        if $LEADER ;
+        then
+        docker swarm init --advertise-addr $(docker-machine ip $i)
+        SWARM_MANAGER_TOKEN=docker swarm join-token manager -q
+        SWARM_WORKER_TOKEN=docker swarm join-token worker -q
+        SWARM_LEADER_IP=$(docker-machine ip $i) 
+        SWARM_LEADER=false
+        else
+        docker swarm join --token $SWARM_MANAGER_TOKEN $SWARM_LEADER_IP:2377
+        fi
 done
 
-# Switch to swarm manager/master
-eval $(docker-machine env --swarm master)
-
-for i in "${SWARM_MEMBERS[@]}"; do
-        log "Starting registrator for swarm $i..."
-        docker run -d \
-                -e constraint:node==$i \
-                -v /var/run/docker.sock:/tmp/docker.sock \
-                --name=registrator-$i \
-                --net=host \
-                gliderlabs/registrator \
-                consul://$CONSUL_IP:8500
-done   
+for i in "${SWARM_WORKERS[@]}"; do
+        log "Creating $i machine..."
+        docker-machine create --driver virtualbox --virtualbox-memory 512 $i
+        eval "$(docker-machine env $i)"
+        docker swarm join --token $SWARM_WORKER_TOKEN $SWARM_LEADER_IP:2377
+done
 
 log "Swarm cluster is up!!!"
