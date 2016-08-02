@@ -18,11 +18,11 @@ for i in "${SWARM_MANAGERS[@]}"; do
         docker-machine create --driver virtualbox --virtualbox-memory 512 $i
         eval "$(docker-machine env $i)"
 
-        if $LEADER ;
+        if $SWARM_LEADER ;
         then
         docker swarm init --advertise-addr $(docker-machine ip $i)
-        SWARM_MANAGER_TOKEN=docker swarm join-token manager -q
-        SWARM_WORKER_TOKEN=docker swarm join-token worker -q
+        SWARM_MANAGER_TOKEN=$(docker swarm join-token manager -q)
+        SWARM_WORKER_TOKEN=$(docker swarm join-token worker -q)
         SWARM_LEADER_IP=$(docker-machine ip $i) 
         SWARM_LEADER=false
         else
@@ -37,4 +37,7 @@ for i in "${SWARM_WORKERS[@]}"; do
         docker swarm join --token $SWARM_WORKER_TOKEN $SWARM_LEADER_IP:2377
 done
 
-log "Swarm cluster is up!!!"
+log "Swarm cluster is running with given info:"
+log "Manager token: $SWARM_MANAGER_TOKEN"
+log "Worker token: $SWARM_WORKER_TOKEN"
+log "Current manager leader: $SWARM_LEADER_IP:2377"
