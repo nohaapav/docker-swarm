@@ -1,9 +1,6 @@
 #!/bin/bash
 
-GC='\033[0;32m' #green color
-NC='\033[0m' #no color
-
-function log { echo -e "${GC}$1${NC}"; }
+source logger.sh
 
 SWARM_MANAGERS=("manager0" "manager1" "manager2")
 SWARM_WORKERS=("worker0" "worker1" "worker2")
