@@ -4,7 +4,7 @@ source ../logger.sh
 
 MANAGER_IP=$(docker-machine ip manager0)
 
-log "Test round-robin DNS:"
+log "Test round-robin LB:"
 for i in {1..6}; do curl http://$MANAGER_IP; done
 
 log "Test DNS service discovery:"
