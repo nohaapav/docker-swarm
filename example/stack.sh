@@ -3,14 +3,14 @@
 docker network create --driver overlay backend-tier
 
 docker service create \
-  --replicas 3 \
-  --name serviceA \
   --network backend-tier \
-  -p 80:8080 \
-  nohaapav/app
+  --replicas 3 \
+  --name manager \
+  --publish 80:8080/tcp \
+  nohaapav/napp
 
 docker service create \
-  --replicas 3 \
-  --name serviceB \
   --network backend-tier \
-  nohaapav/app
+  --replicas 3 \
+  --name service \
+  nohaapav/napp
